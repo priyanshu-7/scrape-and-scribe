@@ -7,3 +7,8 @@ Setup
 - Get OpenAI keys and add them to creds.json
 - Launch main.js
 - Head to localhost:3000
+
+Limitations 
+- Sending a HUGE amount of text in the OpenAI request might return an error (tested with a free OpenAI credits)
+- Certain web pages might return server errors.
+- Not all the data might be available from scrollable URLs.
