@@ -27,8 +27,7 @@ async function pageContent(page) {
 async function scrapeAndScribe(browser, prompt, page) {
   try {
     let pageData = await pageContent(page);
-    pageData.replace(/(^[ \t]*\n)/gm, "");
-    await browser.close();
+    pageData = pageData.replace(/(^[ \t]*\n)/gm, "");
     let content = "From the following data: " + pageData + " " + prompt;
     const data = {
       model: 'gpt-3.5-turbo',
