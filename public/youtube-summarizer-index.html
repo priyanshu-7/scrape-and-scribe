@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Scrape and Scribe</title>
+  <title>YouTube Video Summarizer</title>
   <style>
     body {
     font-family: Arial, sans-serif;
@@ -64,15 +64,13 @@
 </head>
 <body>
   <div class="container">
-    <h1>Scrape and Scribe</h1>
-    <form action="/submit" name = "promptForm" method="post">
+    <h1>YouTube Video Summarizer</h1>
+    <form action="/summarize-video" name = "promptForm" method="post">
       <label for="url">URL:</label>
       <input type="url" id="url" name="url" required><br>
-      <label for="prompt">From the following data (prompt):</label>
-      <textarea id="prompt" name="prompt" rows="4" required></textarea><br>
       <input type="submit" value="Submit">
     </form>
-    <center><p class = "lead"><a href = "youtube-summarizer-index.html">YouTube Video Summarizer</a></p></center>
+    <center><p class = "lead"><a href = "index.html">Scrape and Scribe</a></p></center>
     <center><p class = "lead">Made with <font color = "red">&#x2764;</font> by Priyanshu || <a href="https://github.com/priyanshu-7">Github</a></p></center>
   </div>
 </body>
