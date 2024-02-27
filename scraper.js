@@ -12,7 +12,7 @@ async function scrapeAndScribev2(browser, prompt, page, descriptionText) {
           pageData = pageData.replace(/(^[ \t]*\n)/gm, "");
           content = "From the following data: " + pageData + " " + prompt;
         } else {
-          content = "Tell me what this YouTube video transcript is about and summarize it (return HTML page with html tags -> start with what the video is about and then the summary) in short with all the details mentioned: " + descriptionText;
+          content = "Analyze the content of a provided YouTube video transcript and summarize it. The summary should be structured for inclusion within an HTML container, such as a <div> element, focusing on what the video is about followed by a concise yet comprehensive summary. Please structure the summary using relevant HTML tags like <h1>, <p>, and <ul> for headings, paragraphs, and lists respectively. Ensure the summary captures all key details mentioned in the video: " + descriptionText;
         }
         const generationConfig = {
           temperature: 0.7,

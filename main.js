@@ -1,18 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { launchScraper, videoTranscriptPrompt } = require('./scraper.js')
+const { launchScraper, videoTranscriptPrompt } = require('./scraper.js');
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 10,
+	standardHeaders: 'draft-7', 
+	legacyHeaders: false, 
+})
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(limiter)
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
-});
-app.get('/youtube-summarizer', (req, res) => {
-  res.sendFile(__dirname + '/public/youtube-summarizer-index.html');
 });
 
 app.post('/summarize-video', async(req, res) => {
@@ -83,8 +88,6 @@ app.post('/summarize-video', async(req, res) => {
     </body>
     </html>
   `;
-
-  // Send the HTML page as the response
   res.send(contentHtml);
   } catch (error) {
     console.error(error);
@@ -162,8 +165,6 @@ app.post('/submit', async(req, res) => {
     </body>
     </html>
   `;
-
-  // Send the HTML page as the response
   res.send(contentHtml);
   } catch (error) {
     console.error(error);
