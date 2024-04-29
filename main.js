@@ -1,177 +1,62 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const { launchScraper, videoTranscriptPrompt } = require('./scraper.js');
-const rateLimit = require('express-rate-limit');
-
-const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	limit: 10,
-	standardHeaders: 'draft-7', 
-	legacyHeaders: false, 
-})
-
+const { launchScraper, videoTranscriptPrompt, examinePdf } = require('./scraper.js');
+const cors = require('cors');
+const multer = require('multer');
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(limiter)
+app.use(cors());
+app.use(express.json());
 app.use(express.static('public'));
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-app.post('/summarize-video', async(req, res) => {
+app.post('/summarize-pdf', upload.single('file'), async (req, res) => {
   try {
-    const url = req.body.url;
-    let response = await videoTranscriptPrompt(url);
-    console.log(response);
-    const contentHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>YouTube Video Summary</title>
-      <style>
-        body, html {
-          font-family: Arial, sans-serif;
-          background-color: #f4f4f4;
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          display: flex;
-          flex-direction: column; 
-        }
-        
-        .container {
-          flex-grow: 1; 
-          display: flex;
-          flex-direction: column;
-          justify-content: center; 
-          align-items: center; 
-          padding: 20px;
-        }
-    
-        .back-button {
-          margin: 20px;
-          padding: 10px 20px;
-          font-size: 16px;
-          cursor: pointer;
-          background-color: #007bff;
-          color: #ffffff;
-          border: none;
-          border-radius: 5px;
-        }
-    
-        @media (max-width: 600px) {
-          .container {
-            padding: 10px; 
-          }
-    
-          .back-button {
-            font-size: 14px;
-            padding: 8px 16px;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Generated Result</h1>
-        <p id="responseText">${response}</p>
-        <button class="back-button" onclick="goBack()">Go Back</button>
-      </div>
-    
-      <script>
-        function goBack() {
-          window.history.back();
-        }
-      </script>
-    </body>
-    </html>
-  `;
-  res.send(contentHtml);
+    const response = await examinePdf(req);
+    res.json(response);
   } catch (error) {
-    console.error(error);
-    res.status(500).send('An error occurred.');
+    res.status(500).json({ error: 'Failed to process PDF' });
   }
 });
 
-
-app.post('/submit', async(req, res) => {
+app.post('/summarize-video', async (req, res) => {
+  console.log("Received body:", req.body);
+  const { url, prompt } = req.body;
+  if (!url) {
+      console.error("URL is missing in the request body.");
+      return res.status(400).send("URL is required.");
+  }
   try {
-    const url = req.body.url;
-    const prompt = req.body.prompt;
-    let response = await launchScraper(url, prompt);
-    const contentHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Generated Result</title>
-      <style>
-        body, html {
-          font-family: Arial, sans-serif;
-          background-color: #f4f4f4;
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          display: flex;
-          flex-direction: column; 
-        }
-        
-        .container {
-          flex-grow: 1; 
-          display: flex;
-          flex-direction: column;
-          justify-content: center; 
-          align-items: center; 
-          padding: 20px;
-          text-align: center;
-        }
-    
-        .back-button {
-          margin: 20px;
-          padding: 10px 20px;
-          font-size: 16px;
-          cursor: pointer;
-          background-color: #007bff;
-          color: #ffffff;
-          border: none;
-          border-radius: 5px;
-        }
-    
-        @media (max-width: 600px) {
-          .container {
-            padding: 10px; 
-          }
-    
-          .back-button {
-            font-size: 14px;
-            padding: 8px 16px;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <h1>Generated Result</h1>
-        <p id="responseText">${response}</p>
-        <button class="back-button" onclick="goBack()">Go Back</button>
-      </div>
-    
-      <script>
-        function goBack() {
-          window.history.back();
-        }
-      </script>
-    </body>
-    </html>
-  `;
-  res.send(contentHtml);
+      let response = await videoTranscriptPrompt(url, prompt?prompt:' Give me a summary of this video');
+      console.log("Video summarization response:", response);
+      res.json(response);
   } catch (error) {
-    console.error(error);
-    res.status(500).send('An error occurred.');
+      console.error("Error during video summarization:", error);
+      res.status(500).send("An error occurred while summarizing the video.");
   }
 });
 
+app.post('/summarize-url', async (req, res) => {
+  console.log("Received body:", req.body);
+  const { url, prompt } = req.body;
+  if (!url) {
+      console.error("URL is missing in the request body.");
+      return res.status(400).send("URL is required.");
+  }
+  try {
+      let response = await launchScraper(url, prompt?prompt:' Summarize this page');
+      console.log("Video summarization response:", response);
+      res.json(response);
+  } catch (error) {
+      console.error("Error during URL summarization:", error);
+      res.status(500).send("An error occurred while summarizing the video.");
+  }
+});
 
 
 const port = 3000;
